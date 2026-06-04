@@ -116,9 +116,6 @@
         magic_dns  = true;
         base_domain = "vpn.cloud-surf.com";
         nameservers.global = [ "100.64.0.1" ];
-        # Split DNS: route cloud-surf.com explicitly to Pi-hole so Tailscale's
-        # rebinding protection doesn't drop the 100.64.x response
-        nameservers.split."cloud-surf.com" = [ "100.64.0.1" ];
       };
     };
   };
