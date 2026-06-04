@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     disko = {
       url = "github:nix-community/disko";
@@ -16,7 +16,7 @@
   in {
     nixosConfigurations.vps = nixpkgs.lib.nixosSystem {
       inherit system;
-      specialArgs = { inherit pkgs-unstable sops-nix; nixpkgs-unstable-path = nixpkgs-unstable; };
+      specialArgs = { inherit pkgs-unstable sops-nix; };
       modules = [
         disko.nixosModules.disko
         sops-nix.nixosModules.sops
