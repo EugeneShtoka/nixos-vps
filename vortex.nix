@@ -6,8 +6,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "vortex";
-      rev    = "a809bf98f49c6f1f3a0ecdc8d3d726c543e697d2";
-      hash   = "sha256-5Hw6PSGNkZRzkj9ONHmIw6B7B57k6xyCBPRIHfq5myQ=";
+      rev    = "6c293ed80c3a9a53824b92c124aaa1dea252cd14";
+      hash   = "sha256-IG6a67YEX3rR+J49rkjAKeQYsl2HmkOpVoElwvZv6kE=";
     };
     cargoLock.lockFile = ./vortex-Cargo.lock;
     cargoBuildFlags    = [ "-p" "vortexd" ];
