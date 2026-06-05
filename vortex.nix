@@ -31,7 +31,7 @@ in {
 
       [workflows.mx-message]
       tasks = [
-        { id = "passthrough", exec = "printf '{\"text\":\"%s\",\"destination\":\"%s\"}' '{{trigger.text}}' '{{trigger.room}}'" },
+        { id = "passthrough", exec = "printf '{\"text\":\"%s\",\"destination\":\"homeserver\"}' '{{trigger.text}}'" },
       ]
     '';
   };
