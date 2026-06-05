@@ -552,6 +552,27 @@
     };
   };
 
+  # ── Auto-push nixos config to GitHub after each rebuild ──────────────────────
+  systemd.services.nixos-config-push = {
+    description = "Push nixos-vps config to GitHub after rebuild";
+    after       = [ "network-online.target" ];
+    wants       = [ "network-online.target" ];
+    wantedBy    = [ "multi-user.target" ];
+    serviceConfig = {
+      Type             = "oneshot";
+      User             = "eugene";
+      RemainAfterExit  = true;
+      ExecStart        = pkgs.writeShellScript "nixos-config-push" ''
+        cd /home/eugene/nixos-vps
+        ${pkgs.git}/bin/git add -A
+        if ! ${pkgs.git}/bin/git diff-index --quiet HEAD; then
+          ${pkgs.git}/bin/git commit -m "auto: post-rebuild $(${pkgs.coreutils}/bin/date -uI)"
+          ${pkgs.git}/bin/git push
+        fi
+      '';
+    };
+  };
+
   # ── Auto-upgrade ─────────────────────────────────────────────────────────────
   # Uncomment after pushing this flake to a git remote (e.g. forgejo or github).
   # system.autoUpgrade = {
