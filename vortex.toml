@@ -1,0 +1,8 @@
+[server]
+unix_socket = "/run/vortex/vortex.sock"
+db_path     = "/var/lib/vortex/state.db"
+
+[workflows.mx-message]
+tasks = [
+  { id = "passthrough", exec = "printf '{\"text\":\"%s\",\"destination\":\"homeserver\"}' '{{trigger.text}}'" },
+]

@@ -20,22 +20,6 @@ in {
     group        = "vortex";
   };
 
-  environment.etc."vortex/vortex.toml" = {
-    mode  = "0640";
-    user  = "vortex";
-    group = "vortex";
-    text  = ''
-      [server]
-      unix_socket = "/run/vortex/vortex.sock"
-      db_path     = "/var/lib/vortex/state.db"
-
-      [workflows.mx-message]
-      tasks = [
-        { id = "passthrough", exec = "printf '{\"text\":\"%s\",\"destination\":\"homeserver\"}' '{{trigger.text}}'" },
-      ]
-    '';
-  };
-
   systemd.services.vortexd = {
     description = "vortexd workflow daemon";
     after       = [ "network.target" ];
@@ -43,7 +27,7 @@ in {
     serviceConfig = {
       User                 = "vortex";
       Group                = "vortex";
-      ExecStart            = "${vortexd}/bin/vortexd /etc/vortex/vortex.toml";
+      ExecStart            = "${vortexd}/bin/vortexd /home/eugene/nixos-vps/vortex.toml";
       RuntimeDirectory     = "vortex";
       RuntimeDirectoryMode = "0770";
       StateDirectory       = "vortex";
