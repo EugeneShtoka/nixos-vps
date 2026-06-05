@@ -139,7 +139,7 @@ in {
     serviceConfig = {
       User             = "matrix";
       Group            = "matrix";
-      ExecStart        = "${mx-proxy}/bin/mx-proxy --config /etc/mx-proxy/config.toml";
+      ExecStart        = "${mx-proxy}/bin/mx-proxy --config /run/secrets/mx-proxy-config";
       Restart          = "on-failure";
       RestartSec       = "5s";
       StandardOutput   = "journal";

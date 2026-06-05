@@ -5,3 +5,7 @@ creation_rules:
     key_groups:
       - age:
           - *vps
+  - path_regex: mx-proxy-secrets\.yaml$
+    key_groups:
+      - age:
+          - *vps
