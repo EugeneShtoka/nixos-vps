@@ -423,7 +423,7 @@
         forceSSL    = true;
         extraConfig = vpnOnly;
         locations."/" = {
-          proxyPass       = "http://127.0.0.1:6167";
+          proxyPass       = "http://127.0.0.1:8900";
           proxyWebsockets = true;
           extraConfig     = "proxy_read_timeout 3600;";
         };
