@@ -53,6 +53,7 @@
       cloudflare-acme-env = { owner = "acme"; group = "acme"; };   # CF_DNS_API_TOKEN=<token>
       pihole-webpassword  = {};
       searxng-secret-key  = {};   # SEARXNG_SECRET_KEY=<token>
+      doublepuppet-token  = {};
     };
   };
 
@@ -327,6 +328,12 @@
     };
   };
 
+  # ── Ntfy ──────────────────────────────────────────────────────────────────────
+  services.ntfy-sh = {
+    enable = true;
+    settings.base-url = "https://ntfy.cloud-surf.com";
+  };
+
   # ── CrowdSec ──────────────────────────────────────────────────────────────────
   # No NixOS service module in nixpkgs 24.11 — installed as package, configured manually.
   # After first boot:
@@ -358,6 +365,7 @@
       "seer.cloud-surf.com"
       "netdata.cloud-surf.com"
       "matrix.cloud-surf.com"
+      "ntfy.cloud-surf.com"
     ] (_: { dnsProvider = "cloudflare"; webroot = null; });
   };
 
@@ -418,6 +426,16 @@
           proxyPass       = "http://127.0.0.1:6167";
           proxyWebsockets = true;
           extraConfig     = "proxy_read_timeout 3600;";
+        };
+      };
+
+      "ntfy.cloud-surf.com" = {
+        enableACME  = true;
+        forceSSL    = true;
+        extraConfig = vpnOnly;
+        locations."/" = {
+          proxyPass       = "http://127.0.0.1:2586";
+          proxyWebsockets = true;
         };
       };
 
