@@ -54,7 +54,7 @@
       pihole-webpassword  = {};
       searxng-secret-key  = {};   # SEARXNG_SECRET_KEY=<token>
       doublepuppet-token  = {};
-      mx-proxy-config     = { sopsFile = ./mx-proxy-secrets.yaml; owner = "matrix"; group = "matrix"; mode = "0640"; };
+      mx-proxy-config     = { sopsFile = ./mx-proxy-secrets.yaml; key = "config"; owner = "matrix"; group = "matrix"; mode = "0640"; };
     };
   };
 
