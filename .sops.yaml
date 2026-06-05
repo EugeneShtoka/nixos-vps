@@ -1,9 +1,7 @@
 keys:
-  - &laptop age1a5y9elunsvpqpwesafmk4ssu8kqldt39tr2au3y32870hgggncvsqsj95r
-  - &vps    age16wt580y8f03zujn68wqsyf64ajw72pmx7j703dwfu8mk4lfwwqfsyf9g7w
+  - &vps age16wt580y8f03zujn68wqsyf64ajw72pmx7j703dwfu8mk4lfwwqfsyf9g7w
 creation_rules:
   - path_regex: secrets\.yaml$
     key_groups:
       - age:
-          - *laptop
           - *vps
