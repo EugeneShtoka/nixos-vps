@@ -6,7 +6,7 @@ set -euo pipefail
 DOMAIN="matrix.cloud-surf.com"
 EUGENE="@eugene:${DOMAIN}"
 REG_TOKEN="$(head -c 24 /dev/urandom | base64 | tr -d '/')"
-DOUBLEPUPPET_TOKEN="taIRrQgnSPPLXILg76ZA1G6SWVB9hRzYWocD6gh5KM"
+DOUBLEPUPPET_TOKEN="YOUR_DOUBLEPUPPET_TOKEN"
 
 echo "=== Matrix stack setup ==="
 echo "Domain: ${DOMAIN}"
