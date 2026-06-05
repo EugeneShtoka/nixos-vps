@@ -29,7 +29,7 @@ in {
       Group                = "vortex";
       # Copy config from git repo (root-readable) into the service's own state dir,
       # so workflow changes only need `git pull && systemctl restart vortexd`.
-      ExecStartPre         = "+${pkgs.coreutils}/bin/cp /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml";
+      ExecStartPre         = "+${pkgs.coreutils}/bin/install -m 0640 -o vortex -g vortex /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml";
       ExecStart            = "${vortexd}/bin/vortexd /var/lib/vortex/vortex.toml";
       RuntimeDirectory     = "vortex";
       RuntimeDirectoryMode = "0770";
