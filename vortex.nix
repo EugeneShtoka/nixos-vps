@@ -20,9 +20,21 @@ in {
     group        = "vortex";
   };
 
-  systemd.tmpfiles.rules = [
-    "d /etc/vortex 0750 vortex vortex - -"
-  ];
+  environment.etc."vortex/vortex.toml" = {
+    mode  = "0640";
+    user  = "vortex";
+    group = "vortex";
+    text  = ''
+      [server]
+      unix_socket = "/run/vortex/vortex.sock"
+      db_path     = "/var/lib/vortex/state.db"
+
+      [workflows.mx-message]
+      tasks = [
+        { id = "passthrough", exec = "printf '{\"text\":\"%s\",\"destination\":\"%s\"}' '{{trigger.text}}' '{{trigger.room}}'" },
+      ]
+    '';
+  };
 
   systemd.services.vortexd = {
     description = "vortexd workflow daemon";
