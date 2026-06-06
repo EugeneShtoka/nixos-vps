@@ -1,11 +1,15 @@
 { config, pkgs, lib, pkgs-unstable, sops-nix, ... }:
 {
   imports = [
-    ./base.nix
+    ./boot.nix
+    ./network.nix
+    ./nix.nix
+    ./users.nix
+    ./ssh.nix
     ./secrets.nix
     ./hardening.nix
     ./headscale.nix
-    ./pihole.nix
+    ./dns.nix
     ./vaultwarden.nix
     ./forgejo.nix
     ./searxng.nix
