@@ -10,8 +10,8 @@
     ./hardening.nix
     ./headscale.nix
     ./dns.nix
-    ./vaultwarden.nix
-    ./forgejo.nix
+    ./password-manager.nix
+    ./vcs.nix
     ./searxng.nix
     ./syncthing.nix
     ./netdata.nix
