@@ -6,7 +6,7 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "vortex";
-      rev    = "bf0f474";
+      rev    = "bf0f474349ff2347d4d912dd751f03627a6b076d";
       hash   = "sha256-qV28iSbkPJxHWviNPx9XfYtr2ucSMKe8hht9tlwnmTc=";
     };
     cargoLock.lockFile = ./vortex-Cargo.lock;
