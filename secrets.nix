@@ -3,7 +3,6 @@
   sops = {
     defaultSopsFile = ./secrets.yaml;
     age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-    # sops-install-secrets needs Go 1.25; use sops-nix's own build
     package = sops-nix.packages.${pkgs.system}.sops-install-secrets;
     secrets = {
       cloudflare-acme-env = { owner = "acme"; group = "acme"; };
@@ -17,6 +16,8 @@
         group    = "matrix";
         mode     = "0640";
       };
+      telegram-api-id   = { owner = "matrix"; group = "matrix"; };
+      telegram-api-hash = { owner = "matrix"; group = "matrix"; };
     };
   };
 }

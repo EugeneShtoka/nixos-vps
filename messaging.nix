@@ -160,8 +160,17 @@ in {
     mkBridgeService "mautrix-linkedin"    linkedinPkg  "mautrix-linkedin";
   systemd.services.mautrix-slack       =
     mkBridgeService "mautrix-slack"       slackPkg     "mautrix-slack";
-  systemd.services.mautrix-telegram    =
-    mkBridgeService "mautrix-telegram"    telegramPkg  "mautrix-telegram";
   systemd.services.mautrix-signal      =
     mkBridgeService "mautrix-signal"      signalPkg    "mautrix-signal";
+
+  # Telegram needs api_id + api_hash injected from sops before each start
+  systemd.services.mautrix-telegram = lib.mkMerge [
+    (mkBridgeService "mautrix-telegram" telegramPkg "mautrix-telegram")
+    {
+      serviceConfig.ExecStartPre = pkgs.writeShellScript "patch-telegram-api" ''
+        sed -i "s/api_id: .*/api_id: $(cat ${config.sops.secrets.telegram-api-id.path})/" /etc/mautrix-telegram/config.yaml
+        sed -i "s/api_hash: .*/api_hash: $(cat ${config.sops.secrets.telegram-api-hash.path})/" /etc/mautrix-telegram/config.yaml
+      '';
+    }
+  ];
 }
