@@ -19,7 +19,7 @@
     ./ntfy.nix
     ./nginx.nix
     ./backup.nix
-    ./vortex.nix
-    ./matrix.nix
+    ./orchestrator.nix
+    ./messaging.nix
   ];
 }
