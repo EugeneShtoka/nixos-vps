@@ -8,16 +8,16 @@
     ./ssh.nix
     ./secrets.nix
     ./hardening.nix
-    ./headscale.nix
+    ./vpn.nix
     ./dns.nix
     ./password-manager.nix
     ./vcs.nix
-    ./searxng.nix
-    ./syncthing.nix
-    ./netdata.nix
-    ./tinyproxy.nix
-    ./ntfy.nix
-    ./nginx.nix
+    ./search.nix
+    ./sync.nix
+    ./monitoring.nix
+    ./http-proxy.nix
+    ./notifications.nix
+    ./proxy.nix
     ./backup.nix
     ./orchestrator.nix
     ./messaging.nix
