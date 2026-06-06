@@ -24,6 +24,13 @@
   ];
 
   environment.systemPackages = with pkgs; [
-    git htop vim curl wget podman-compose crowdsec
+    git
+    htop
+    vim
+    curl
+    wget
+    jq
+    podman-compose
+    crowdsec   # includes crowdsec-firewall-bouncer binary
   ];
 }
