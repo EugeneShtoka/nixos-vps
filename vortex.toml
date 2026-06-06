@@ -3,7 +3,11 @@ unix_socket = "/run/vortex/vortex.sock"
 db_path     = "/var/lib/vortex/state.db"
 
 [workflows.mx-message]
+correlation_id = "{{trigger.id}}"
 tasks = [
-  { id = "passthrough", exec = "printf '{\"text\":\"%s\",\"destination\":\"homeserver\",\"room_id\":\"%s\",\"sender\":\"%s\"}' '{{trigger.text}}' '{{trigger.room}}' '{{trigger.sender}}'" },
-  { id = "notify", topic = "mx-notify", server = "https://ntfy.cloud-surf.com", message = "{{trigger.text}}", title = "{{trigger.sender}} [{{trigger.room}}]" },
+  { type = "spawn",  id = "check_cs", exe = "jq", args = ["-e", ".event_id == \"\""] },
+  { type = "notify", id = "notify",   topic = "mx-notify", server = "https://ntfy.cloud-surf.com", message = "{{trigger.text}}", title = "{{trigger.sender}} [{{trigger.room}}]", when = "check_cs" },
+  { type = "response", id = "reply",
+    template = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}',
+    when = "check_cs" },
 ]
