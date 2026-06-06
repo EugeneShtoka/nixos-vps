@@ -19,7 +19,11 @@
     ./notifications.nix
     ./proxy.nix
     ./backup.nix
-    ./orchestrator.nix
     ./messaging.nix
+    ./orchestrator.nix
+  ];
+
+  environment.systemPackages = with pkgs; [
+    git htop vim curl wget podman-compose crowdsec
   ];
 }
