@@ -7,7 +7,5 @@ correlation_id = "{{trigger.id}}"
 tasks = [
   { type = "spawn",  id = "check_cs", exe = "jq", args = ["-e", ".event_id == \"\""] },
   { type = "notify", id = "notify",   topic = "mx-notify", server = "https://ntfy.cloud-surf.com", message = "{{trigger.text}}", title = "{{trigger.sender}} [{{trigger.room}}]", when = "check_cs" },
-  { type = "response", id = "reply",
-    template = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}',
-    when = "check_cs" },
+  { type = "response", id = "reply", template = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}', when = "check_cs" },
 ]
