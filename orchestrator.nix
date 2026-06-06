@@ -6,8 +6,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "vortex";
-      rev    = "6c293ed80c3a9a53824b92c124aaa1dea252cd14";
-      hash   = "sha256-IG6a67YEX3rR+J49rkjAKeQYsl2HmkOpVoElwvZv6kE=";
+      rev    = "bf0f474";
+      hash   = "sha256-qV28iSbkPJxHWviNPx9XfYtr2ucSMKe8hht9tlwnmTc=";
     };
     cargoLock.lockFile = ./vortex-Cargo.lock;
     cargoBuildFlags    = [ "-p" "vortexd" ];
@@ -24,6 +24,7 @@ in {
     description = "vortexd workflow daemon";
     after       = [ "network.target" ];
     wantedBy    = [ "multi-user.target" ];
+    path        = [ pkgs.jq ];
     serviceConfig = {
       User                 = "vortex";
       Group                = "vortex";
