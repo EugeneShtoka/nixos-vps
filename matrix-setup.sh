@@ -113,6 +113,12 @@ database:
 bridge:
     permissions:
         "${EUGENE}": admin
+
+double_puppet:
+    servers: {}
+    allow_discovery: false
+    secrets:
+        ${DOMAIN}: as_token:${DOUBLEPUPPET_TOKEN}
 CFGEOF
     chown matrix:matrix "${cfg}"
     chmod 640 "${cfg}"
