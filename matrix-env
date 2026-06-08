@@ -1,3 +1,4 @@
-MATRIX_SERVER=https://matrix.cloud-surf.com
+MATRIX_SERVER=http://127.0.0.1:6167
+MATRIX_USER_ID=@eugene:matrix.cloud-surf.com
 MATRIX_CODE_SENDERS=[]
 MATRIX_CUSTOM_SPACES=[]

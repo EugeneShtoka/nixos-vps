@@ -37,6 +37,15 @@ let
     cargoBuildFlags    = [ "-p" "vortexd" ];
     doCheck            = false;
   };
+  # Extracts as_token from the already-decrypted mx-proxy-config sops secret
+  # and writes it as MATRIX_ACCESS_TOKEN=<value> into the vortexd state dir.
+  extractMatrixToken = pkgs.writeShellScript "extract-matrix-token" ''
+    TOKEN=$(${pkgs.gnugrep}/bin/grep 'as_token' ${config.sops.secrets.mx-proxy-config.path} \
+      | ${pkgs.gnused}/bin/sed 's/.*= "\(.*\)"/\1/')
+    printf 'MATRIX_ACCESS_TOKEN=%s\n' "$TOKEN" > /var/lib/vortex/matrix-token.env
+    chown orchestrator:orchestrator /var/lib/vortex/matrix-token.env
+    chmod 0400 /var/lib/vortex/matrix-token.env
+  '';
 in {
   users.groups.orchestrator = {};
   users.users.orchestrator = {
@@ -52,16 +61,17 @@ in {
     serviceConfig = {
       User                 = "orchestrator";
       Group                = "orchestrator";
-      # Copy config + scripts from git repo into the service state dir.
-      # Workflow changes only need `git pull && systemctl restart vortexd`.
+      # Copy config + scripts, then extract the Matrix AS token from the
+      # already-decrypted mx-proxy sops secret into matrix-token.env.
       ExecStartPre         = [
         "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml"
         "+${pkgs.coreutils}/bin/install -m 0750 -o orchestrator -g orchestrator /home/eugene/nixos-vps/scripts/check-space.sh /var/lib/vortex/check-space.sh"
+        "+${extractMatrixToken}"
       ];
-      # Non-sensitive config; MATRIX_ACCESS_TOKEN comes from sops secret.
+      # matrix-token.env is written by ExecStartPre above; optional on first start.
       EnvironmentFile      = [
         "/home/eugene/nixos-vps/matrix-env"
-        config.sops.secrets.matrix-access-token-env.path
+        "-/var/lib/vortex/matrix-token.env"
       ];
       ExecStart            = "${vortexd}/bin/vortexd /var/lib/vortex/vortex.toml";
       RuntimeDirectory     = "vortex";
