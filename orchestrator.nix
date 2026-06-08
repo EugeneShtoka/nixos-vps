@@ -52,10 +52,17 @@ in {
     serviceConfig = {
       User                 = "orchestrator";
       Group                = "orchestrator";
-      # Copy config from git repo (root-readable) into the service's own state dir,
-      # so workflow changes only need `git pull && systemctl restart vortexd`.
-      ExecStartPre         = "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml";
-      EnvironmentFile      = "/home/eugene/nixos-vps/matrix-env";
+      # Copy config + scripts from git repo into the service state dir.
+      # Workflow changes only need `git pull && systemctl restart vortexd`.
+      ExecStartPre         = [
+        "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml"
+        "+${pkgs.coreutils}/bin/install -m 0750 -o orchestrator -g orchestrator /home/eugene/nixos-vps/scripts/check-space.sh /var/lib/vortex/check-space.sh"
+      ];
+      # Non-sensitive config; MATRIX_ACCESS_TOKEN comes from sops secret.
+      EnvironmentFile      = [
+        "/home/eugene/nixos-vps/matrix-env"
+        config.sops.secrets.matrix-access-token-env.path
+      ];
       ExecStart            = "${vortexd}/bin/vortexd /var/lib/vortex/vortex.toml";
       RuntimeDirectory     = "vortex";
       RuntimeDirectoryMode = "0770";

@@ -14,12 +14,12 @@ message = "{{trigger.text}}"
 title   = "{{trigger.sender}} [{{trigger.room}}]"
 when    = 'trigger.event_id == ""'
 
-# Check whether the room belongs to any space in MATRIX_CUSTOM_SPACES.
+# Check whether the room's parent space name is in MATRIX_CUSTOM_SPACES.
 # Succeeds (exit 0) if it does; fails (exit 1) otherwise.
 [[workflows.mx-message.tasks]]
 type = "shell"
 id   = "check_space"
-exec = "curl -sf -H \"Authorization: Bearer $MATRIX_ACCESS_TOKEN\" \"$MATRIX_SERVER/_matrix/client/v3/rooms/{{trigger.room}}/state\" | jq -e --argjson c \"$MATRIX_CUSTOM_SPACES\" 'any(.[] | select(.type == \"m.space.parent\") | .state_key; IN($c[]))'"
+exec = "/var/lib/vortex/check-space.sh {{trigger.room}}"
 
 # For custom-space messages (friends/social/work/colleagues): send a direct link.
 [[workflows.mx-message.tasks]]

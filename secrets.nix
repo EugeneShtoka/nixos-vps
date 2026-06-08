@@ -16,8 +16,9 @@
         group    = "matrix";
         mode     = "0640";
       };
-      telegram-api-id   = { owner = "matrix"; group = "matrix"; };
-      telegram-api-hash = { owner = "matrix"; group = "matrix"; };
+      telegram-api-id         = { owner = "matrix"; group = "matrix"; };
+      telegram-api-hash       = { owner = "matrix"; group = "matrix"; };
+      matrix-access-token-env = { owner = "orchestrator"; group = "orchestrator"; mode = "0400"; };
     };
   };
 }
