@@ -54,11 +54,8 @@ in {
       Group                = "orchestrator";
       # Copy config from git repo (root-readable) into the service's own state dir,
       # so workflow changes only need `git pull && systemctl restart vortexd`.
-      ExecStartPre         = [
-        "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml"
-        "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex-env  /var/lib/vortex/vortex-env"
-      ];
-      EnvironmentFile      = "/var/lib/vortex/vortex-env";
+      ExecStartPre         = "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml";
+      EnvironmentFile      = "/home/eugene/nixos-vps/vortex-env";
       ExecStart            = "${vortexd}/bin/vortexd /var/lib/vortex/vortex.toml";
       RuntimeDirectory     = "vortex";
       RuntimeDirectoryMode = "0770";
