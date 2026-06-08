@@ -59,9 +59,10 @@ let
     headers = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
 
     [[workflows.mx-message.tasks]]
-    type = "condition"
-    id   = "in_custom_space"
-    expr = 'tasks.fetch_state.success && tasks.fetch_state.output.exists(e, e.type == "m.space.parent" && e.state_key in env.MATRIX_CUSTOM_SPACES)'
+    type       = "condition"
+    id         = "in_custom_space"
+    depends_on = ["fetch_state"]
+    expr       = 'tasks.fetch_state.success && tasks.fetch_state.output.exists(e, e.type == "m.space.parent" && e.state_key in env.MATRIX_CUSTOM_SPACES)'
 
     [[workflows.mx-message.tasks]]
     type    = "notify"
