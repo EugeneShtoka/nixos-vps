@@ -96,7 +96,7 @@ let
 
     [[workflows.mx-message.tasks]]
     type    = "notify"
-    id      = "notify_clipboard"
+    id      = "notify_code"
     topic   = "mx-clipboard"
     server  = "https://ntfy.cloud-surf.com"
     message = "{{tasks.extract_code.stdout}}"
