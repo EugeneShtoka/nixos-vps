@@ -74,10 +74,25 @@ let
 
     [[workflows.mx-message.tasks]]
     type = "spawn"
+    id   = "extract_url"
+    exe  = "clipkit"
+    args = ["--json", "text", "--extract-url"]
+    when = '!in_custom_space && trigger.event_id != ""'
+
+    [[workflows.mx-message.tasks]]
+    type    = "notify"
+    id      = "notify_url"
+    topic   = "mx-clipboard"
+    server  = "https://ntfy.cloud-surf.com"
+    message = "{{tasks.extract_url.stdout}}"
+    when    = "extract_url"
+
+    [[workflows.mx-message.tasks]]
+    type = "spawn"
     id   = "extract_code"
     exe  = "clipkit"
     args = ["--json", "text", "--extract-code"]
-    when = "!in_custom_space"
+    when = '!in_custom_space && trigger.event_id != "" && !extract_url'
 
     [[workflows.mx-message.tasks]]
     type    = "notify"
