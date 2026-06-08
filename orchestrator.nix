@@ -80,14 +80,6 @@ let
     when = '!in_custom_space && trigger.event_id != ""'
 
     [[workflows.mx-message.tasks]]
-    type    = "notify"
-    id      = "notify_url"
-    topic   = "mx-clipboard"
-    server  = "https://ntfy.cloud-surf.com"
-    message = "{{tasks.extract_url.stdout}}"
-    when    = "extract_url"
-
-    [[workflows.mx-message.tasks]]
     type = "spawn"
     id   = "extract_code"
     exe  = "clipkit"
@@ -96,11 +88,11 @@ let
 
     [[workflows.mx-message.tasks]]
     type    = "notify"
-    id      = "notify_code"
+    id      = "notify_clipboard"
     topic   = "mx-clipboard"
     server  = "https://ntfy.cloud-surf.com"
-    message = "{{tasks.extract_code.stdout}}"
-    when    = "extract_code"
+    message = "{{tasks.extract_url.stdout}}{{tasks.extract_code.stdout}}"
+    when    = "extract_url || extract_code"
 
     [[workflows.mx-message.tasks]]
     type     = "response"
