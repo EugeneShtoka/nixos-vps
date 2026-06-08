@@ -31,7 +31,7 @@ let
       owner  = "EugeneShtoka";
       repo   = "vortex";
       rev    = "cd259c34011d8afbb88c2d78b33bf633cf62007a";
-      hash   = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      hash   = "sha256-YVJgJmF78xuc06hoqrknvWJSE0bzJAXN8Ck/1W0g0nY=";
     };
     cargoLock.lockFile = ./vortex-Cargo.lock;
     cargoBuildFlags    = [ "-p" "vortexd" ];
