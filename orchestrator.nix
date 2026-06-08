@@ -30,8 +30,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "vortex";
-      rev    = "343668971d7ba64cdcf5caf1314981f204b2ec40";
-      hash   = "sha256-DAYBTv+iEHzqNyaRZsecMx2L921udZMJQ/dzY3Thsog=";
+      rev    = "cd259c34011d8afbb88c2d78b33bf633cf62007a";
+      hash   = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     };
     cargoLock.lockFile = ./vortex-Cargo.lock;
     cargoBuildFlags    = [ "-p" "vortexd" ];
@@ -48,13 +48,17 @@ in {
     description = "vortexd workflow daemon";
     after       = [ "network.target" ];
     wantedBy    = [ "multi-user.target" ];
-    path        = [ pkgs.jq jx-match clipkit ];
+    path        = [ jx-match clipkit ];
     serviceConfig = {
       User                 = "orchestrator";
       Group                = "orchestrator";
       # Copy config from git repo (root-readable) into the service's own state dir,
       # so workflow changes only need `git pull && systemctl restart vortexd`.
-      ExecStartPre         = "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml";
+      ExecStartPre         = [
+        "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml"
+        "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex-env  /var/lib/vortex/vortex-env"
+      ];
+      EnvironmentFile      = "/var/lib/vortex/vortex-env";
       ExecStart            = "${vortexd}/bin/vortexd /var/lib/vortex/vortex.toml";
       RuntimeDirectory     = "vortex";
       RuntimeDirectoryMode = "0770";
