@@ -30,40 +30,13 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "vortex";
-      rev    = "cd259c34011d8afbb88c2d78b33bf633cf62007a";
-      hash   = "sha256-YVJgJmF78xuc06hoqrknvWJSE0bzJAXN8Ck/1W0g0nY=";
+      rev    = "df83577853c4ffb05aa4fc53f52e4344f5392ffa";
+      hash   = "sha256-PzyJZxY8KkgRboAandYWYZm4qvsEMl4X0m6iGpjgB5k=";
     };
     cargoLock.lockFile = ./vortex-Cargo.lock;
     cargoBuildFlags    = [ "-p" "vortexd" ];
     doCheck            = false;
   };
-
-  # check-space: exit 0 if room's parent space name is in MATRIX_CUSTOM_SPACES.
-  # Uses the Matrix AS token (via MATRIX_ACCESS_TOKEN) with user impersonation.
-  checkSpace = pkgs.writeShellScript "check-space" ''
-    ROOM="$1"
-    [ -z "$ROOM" ] && exit 1
-
-    PARENTS=$(${pkgs.curl}/bin/curl -sf \
-      -H "Authorization: Bearer $MATRIX_ACCESS_TOKEN" \
-      "$MATRIX_SERVER/_matrix/client/v3/rooms/$ROOM/state?user_id=$MATRIX_USER_ID" \
-      | ${pkgs.jq}/bin/jq -r '.[] | select(.type == "m.space.parent") | .state_key')
-
-    [ -z "$PARENTS" ] && exit 1
-
-    for SPACE_ID in $PARENTS; do
-      NAME=$(${pkgs.curl}/bin/curl -sf \
-        -H "Authorization: Bearer $MATRIX_ACCESS_TOKEN" \
-        "$MATRIX_SERVER/_matrix/client/v3/rooms/$SPACE_ID/state/m.room.name?user_id=$MATRIX_USER_ID" \
-        | ${pkgs.jq}/bin/jq -r '.name // empty')
-      [ -z "$NAME" ] && continue
-      if echo "$MATRIX_CUSTOM_SPACES" | ${pkgs.jq}/bin/jq -e --arg n "$NAME" \
-          'any(.[]; . == $n)' >/dev/null 2>&1; then
-        exit 0
-      fi
-    done
-    exit 1
-  '';
 
   # Non-secret environment for vortexd. MATRIX_ACCESS_TOKEN comes separately
   # from extractMatrixToken (derived from the mx-proxy sops secret at startup).
@@ -71,7 +44,8 @@ let
     MATRIX_SERVER=http://127.0.0.1:6167
     MATRIX_USER_ID=@eugene:matrix.cloud-surf.com
     MATRIX_CODE_SENDERS=[]
-    MATRIX_CUSTOM_SPACES=["Friends","Social","Work","Colleagues"]
+    MATRIX_CUSTOM_SPACES=["!YmVHgcBLpzR4fZ1fjJ:matrix.cloud-surf.com","!bSCdKJyP5D20sswOxD:matrix.cloud-surf.com","!w1kIQdLjYDUj7wgUis:matrix.cloud-surf.com","!UhvRHgZdEoHKMNgoud:matrix.cloud-surf.com"]
+    # Friends=!YmVHgcBLpzR4fZ1fjJ Social=!bSCdKJyP5D20sswOxD Work=!w1kIQdLjYDUj7wgUis Colleagues=!UhvRHgZdEoHKMNgoud
   '';
 
   vortexConfig = pkgs.writeText "vortex.toml" ''
@@ -92,9 +66,15 @@ let
     when    = 'trigger.event_id == ""'
 
     [[workflows.mx-message.tasks]]
-    type = "shell"
-    id   = "check_space"
-    exec = "${checkSpace} {{trigger.room}}"
+    type    = "http"
+    id      = "fetch_state"
+    url     = "{{env.MATRIX_SERVER}}/_matrix/client/v3/rooms/{{trigger.room}}/state?user_id={{env.MATRIX_USER_ID}}"
+    headers = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
+
+    [[workflows.mx-message.tasks]]
+    type = "condition"
+    id   = "in_custom_space"
+    expr = 'tasks.fetch_state.success && tasks.fetch_state.output.exists(e, e.type == "m.space.parent" && e.state_key in env.MATRIX_CUSTOM_SPACES)'
 
     [[workflows.mx-message.tasks]]
     type    = "notify"
@@ -103,7 +83,7 @@ let
     server  = "https://ntfy.cloud-surf.com"
     message = "https://matrix.to/#/{{trigger.room}}/{{trigger.event_id}}"
     title   = "{{trigger.sender}} [{{trigger.room}}]"
-    when    = "check_space"
+    when    = "in_custom_space"
 
     [[workflows.mx-message.tasks]]
     type = "spawn"
@@ -116,7 +96,7 @@ let
     id   = "extract_code"
     exe  = "clipkit"
     args = ["--json", "text", "--extract-code"]
-    when = "check_code_sender && !check_space"
+    when = "check_code_sender && !in_custom_space"
 
     [[workflows.mx-message.tasks]]
     type    = "notify"
