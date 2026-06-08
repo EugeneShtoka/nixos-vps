@@ -1,17 +1,5 @@
 { config, pkgs, lib, ... }:
 let
-  jx-match = pkgs.buildGoModule {
-    pname   = "jx-match";
-    version = "0.1.0";
-    src = pkgs.fetchFromGitHub {
-      owner = "EugeneShtoka";
-      repo  = "jx-match";
-      rev   = "15424a70faa8fec49789e4dc83f1868f0da5ef1f";
-      hash  = "sha256-xjc9uXYIQdYdE+JZrNWOq2xSRKkzq4T1VltjbASv+jg=";
-    };
-    vendorHash = "sha256-hzG7gFveP7vex+C52vsKqVguL3Quqtdh6HgSkT2dQaQ=";
-  };
-
   clipkit = pkgs.buildGoModule {
     pname   = "clipkit";
     version = "0.1.0";
@@ -43,7 +31,6 @@ let
   matrixEnv = pkgs.writeText "matrix-env" ''
     MATRIX_SERVER=http://127.0.0.1:6167
     MATRIX_USER_ID=@eugene:matrix.cloud-surf.com
-    MATRIX_CODE_SENDERS=[]
     MATRIX_CUSTOM_SPACES=["!YmVHgcBLpzR4fZ1fjJ:matrix.cloud-surf.com","!bSCdKJyP5D20sswOxD:matrix.cloud-surf.com","!w1kIQdLjYDUj7wgUis:matrix.cloud-surf.com","!UhvRHgZdEoHKMNgoud:matrix.cloud-surf.com"]
     # Friends=!YmVHgcBLpzR4fZ1fjJ Social=!bSCdKJyP5D20sswOxD Work=!w1kIQdLjYDUj7wgUis Colleagues=!UhvRHgZdEoHKMNgoud
   '';
@@ -87,16 +74,10 @@ let
 
     [[workflows.mx-message.tasks]]
     type = "spawn"
-    id   = "check_code_sender"
-    exe  = "jx-match"
-    args = ["-e", "sender in env.MATRIX_CODE_SENDERS"]
-
-    [[workflows.mx-message.tasks]]
-    type = "spawn"
     id   = "extract_code"
     exe  = "clipkit"
     args = ["--json", "text", "--extract-code"]
-    when = "check_code_sender && !in_custom_space"
+    when = "!in_custom_space"
 
     [[workflows.mx-message.tasks]]
     type    = "notify"
@@ -132,7 +113,7 @@ in {
     description = "vortexd workflow daemon";
     after       = [ "network.target" ];
     wantedBy    = [ "multi-user.target" ];
-    path        = [ jx-match clipkit ];
+    path        = [ clipkit ];
     serviceConfig = {
       User            = "orchestrator";
       Group           = "orchestrator";
