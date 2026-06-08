@@ -4,10 +4,57 @@ db_path     = "/var/lib/vortex/state.db"
 
 [workflows.mx-message]
 correlation_id = "{{trigger.id}}"
-tasks = [
-  { type = "notify",   id = "notify",             topic = "mx-notify",    server = "https://ntfy.cloud-surf.com", message = "{{trigger.text}}", title = "{{trigger.sender}} [{{trigger.room}}]", when = 'trigger.event_id == ""' },
-  { type = "spawn",    id = "check_code_sender",  exe = "jx-match", args = ["-e", "sender in env.MATRIX_CODE_SENDERS"] },
-  { type = "spawn",    id = "extract_code",       exe = "clipkit",  args = ["--json", "text", "--extract-code"], when = "check_code_sender" },
-  { type = "notify",   id = "notify_clipboard",   topic = "mx-clipboard", server = "https://ntfy.cloud-surf.com", message = "{{tasks.extract_code.stdout}}", when = "extract_code" },
-  { type = "response", id = "reply",              template = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}' },
-]
+
+[[workflows.mx-message.tasks]]
+type    = "notify"
+id      = "notify"
+topic   = "mx-notify"
+server  = "https://ntfy.cloud-surf.com"
+message = "{{trigger.text}}"
+title   = "{{trigger.sender}} [{{trigger.room}}]"
+when    = 'trigger.event_id == ""'
+
+# Check whether the room belongs to any space in MATRIX_CUSTOM_SPACES.
+# Succeeds (exit 0) if it does; fails (exit 1) otherwise.
+[[workflows.mx-message.tasks]]
+type = "shell"
+id   = "check_space"
+exec = "curl -sf -H \"Authorization: Bearer $MATRIX_ACCESS_TOKEN\" \"$MATRIX_SERVER/_matrix/client/v3/rooms/{{trigger.room}}/state\" | jq -e --argjson c \"$MATRIX_CUSTOM_SPACES\" 'any(.[] | select(.type == \"m.space.parent\") | .state_key; IN($c[]))'"
+
+# For custom-space messages (friends/social/work/colleagues): send a direct link.
+[[workflows.mx-message.tasks]]
+type    = "notify"
+id      = "notify_link"
+topic   = "mx-notify"
+server  = "https://ntfy.cloud-surf.com"
+message = "https://matrix.to/#/{{trigger.room}}/{{trigger.event_id}}"
+title   = "{{trigger.sender}} [{{trigger.room}}]"
+when    = "check_space"
+
+# Check whether the sender is an OTP/code service.
+[[workflows.mx-message.tasks]]
+type = "spawn"
+id   = "check_code_sender"
+exe  = "jx-match"
+args = ["-e", "sender in env.MATRIX_CODE_SENDERS"]
+
+# Extract verification code only for code senders NOT in a custom space.
+[[workflows.mx-message.tasks]]
+type = "spawn"
+id   = "extract_code"
+exe  = "clipkit"
+args = ["--json", "text", "--extract-code"]
+when = "check_code_sender && !check_space"
+
+[[workflows.mx-message.tasks]]
+type    = "notify"
+id      = "notify_clipboard"
+topic   = "mx-clipboard"
+server  = "https://ntfy.cloud-surf.com"
+message = "{{tasks.extract_code.stdout}}"
+when    = "extract_code"
+
+[[workflows.mx-message.tasks]]
+type     = "response"
+id       = "reply"
+template = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'

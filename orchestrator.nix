@@ -48,14 +48,14 @@ in {
     description = "vortexd workflow daemon";
     after       = [ "network.target" ];
     wantedBy    = [ "multi-user.target" ];
-    path        = [ jx-match clipkit ];
+    path        = [ jx-match clipkit pkgs.jq pkgs.curl ];
     serviceConfig = {
       User                 = "orchestrator";
       Group                = "orchestrator";
       # Copy config from git repo (root-readable) into the service's own state dir,
       # so workflow changes only need `git pull && systemctl restart vortexd`.
       ExecStartPre         = "+${pkgs.coreutils}/bin/install -m 0640 -o orchestrator -g orchestrator /home/eugene/nixos-vps/vortex.toml /var/lib/vortex/vortex.toml";
-      EnvironmentFile      = "/home/eugene/nixos-vps/vortex-env";
+      EnvironmentFile      = "/home/eugene/nixos-vps/matrix-env";
       ExecStart            = "${vortexd}/bin/vortexd /var/lib/vortex/vortex.toml";
       RuntimeDirectory     = "vortex";
       RuntimeDirectoryMode = "0770";
