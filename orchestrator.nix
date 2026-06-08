@@ -44,19 +44,21 @@ let
     correlation_id = "{{trigger.id}}"
 
     [[workflows.mx-message.tasks]]
-    type    = "notify"
-    id      = "notify"
-    topic   = "mx-notify"
-    server  = "https://ntfy.cloud-surf.com"
-    message = "{{trigger.text}}"
-    title   = "{{trigger.sender}} [{{trigger.room}}]"
-    when    = 'trigger.event_id == ""'
+    type       = "notify"
+    id         = "notify"
+    depends_on = []
+    topic      = "mx-notify"
+    server     = "https://ntfy.cloud-surf.com"
+    message    = "{{trigger.text}}"
+    title      = "{{trigger.sender}} [{{trigger.room}}]"
+    when       = 'trigger.event_id == ""'
 
     [[workflows.mx-message.tasks]]
-    type    = "http"
-    id      = "fetch_state"
-    url     = "{{env.MATRIX_SERVER}}/_matrix/client/v3/rooms/{{trigger.room}}/state?user_id={{env.MATRIX_USER_ID}}"
-    headers = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
+    type       = "http"
+    id         = "fetch_state"
+    depends_on = []
+    url        = "{{env.MATRIX_SERVER}}/_matrix/client/v3/rooms/{{trigger.room}}/state?user_id={{env.MATRIX_USER_ID}}"
+    headers    = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
 
     [[workflows.mx-message.tasks]]
     type       = "condition"
@@ -65,40 +67,45 @@ let
     expr       = 'tasks.fetch_state.success && tasks.fetch_state.output.exists(e, e.type == "m.space.parent" && e.state_key in env.MATRIX_CUSTOM_SPACES)'
 
     [[workflows.mx-message.tasks]]
-    type    = "notify"
-    id      = "notify_link"
-    topic   = "mx-notify"
-    server  = "https://ntfy.cloud-surf.com"
-    message = "https://matrix.to/#/{{trigger.room}}/{{trigger.event_id}}"
-    title   = "{{trigger.sender}} [{{trigger.room}}]"
-    when    = "in_custom_space"
+    type       = "notify"
+    id         = "notify_link"
+    depends_on = ["in_custom_space"]
+    topic      = "mx-notify"
+    server     = "https://ntfy.cloud-surf.com"
+    message    = "https://matrix.to/#/{{trigger.room}}/{{trigger.event_id}}"
+    title      = "{{trigger.sender}} [{{trigger.room}}]"
+    when       = "in_custom_space"
 
     [[workflows.mx-message.tasks]]
-    type = "spawn"
-    id   = "extract_url"
-    exe  = "clipkit"
-    args = ["--json", "text", "--extract-url"]
-    when = '!in_custom_space && trigger.event_id != ""'
+    type       = "spawn"
+    id         = "extract_url"
+    depends_on = ["in_custom_space"]
+    exe        = "clipkit"
+    args       = ["--json", "text", "--extract-url"]
+    when       = '!in_custom_space && trigger.event_id != ""'
 
     [[workflows.mx-message.tasks]]
-    type = "spawn"
-    id   = "extract_code"
-    exe  = "clipkit"
-    args = ["--json", "text", "--extract-code"]
-    when = '!in_custom_space && trigger.event_id != "" && !extract_url'
+    type       = "spawn"
+    id         = "extract_code"
+    depends_on = ["in_custom_space", "extract_url"]
+    exe        = "clipkit"
+    args       = ["--json", "text", "--extract-code"]
+    when       = '!in_custom_space && trigger.event_id != "" && !extract_url'
 
     [[workflows.mx-message.tasks]]
-    type    = "notify"
-    id      = "notify_clipboard"
-    topic   = "mx-clipboard"
-    server  = "https://ntfy.cloud-surf.com"
-    message = "{{tasks.extract_url.stdout}}{{tasks.extract_code.stdout}}"
-    when    = "extract_url || extract_code"
+    type       = "notify"
+    id         = "notify_clipboard"
+    depends_on = ["extract_url", "extract_code"]
+    topic      = "mx-clipboard"
+    server     = "https://ntfy.cloud-surf.com"
+    message    = "{{tasks.extract_url.stdout}}{{tasks.extract_code.stdout}}"
+    when       = "extract_url || extract_code"
 
     [[workflows.mx-message.tasks]]
-    type     = "response"
-    id       = "reply"
-    template = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
+    type       = "response"
+    id         = "reply"
+    depends_on = ["notify", "notify_link", "notify_clipboard"]
+    template   = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
   '';
 
   # Extracts as_token from the decrypted mx-proxy sops secret and writes it
