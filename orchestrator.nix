@@ -126,7 +126,7 @@ in {
 
   systemd.services.vortexd = {
     description = "vortexd workflow daemon";
-    after       = [ "network.target" ];
+    after       = [ "network.target" "tailscaled.service" ];
     wantedBy    = [ "multi-user.target" ];
     path        = [ clipkit ];
     serviceConfig = {
