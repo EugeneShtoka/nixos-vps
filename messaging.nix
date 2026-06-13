@@ -35,8 +35,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "mx-proxy";
-      rev    = "ec965719f0cc7b53933591272d7ce611bfb91ca1";
-      hash   = "sha256-GhUGvdnE2HdWS95xxHLYRj6Ia2vp9C83QhOLyc5IWR4=";
+      rev    = "942ecb31a34e24572455d4b66215617c05fa7195";
+      hash   = "sha256-+5JcC33lUH16YEL9pXxvdbsIEUHUq2Em3QmKStbvq+A=";
     };
     vendorHash = "sha256-Upjt0Q2G6x5vGf0bG0TS9uWrHBow8/cQsZexhMgVb2I=";
   };
