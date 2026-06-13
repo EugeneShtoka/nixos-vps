@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, pkgs-unstable, ... }:
 let
   mkBridge = name: version: hash:
     pkgs.stdenv.mkDerivation {
@@ -35,19 +35,19 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "mx-proxy";
-      rev    = "ec965719f0cc7b53933591272d7ce611bfb91ca1";
-      hash   = "sha256-GhUGvdnE2HdWS95xxHLYRj6Ia2vp9C83QhOLyc5IWR4=";
+      rev    = "f4ff8e1abd2a47d438cf335814129506a560c1eb";
+      hash   = "sha256-9F5v0hlhwEER6CgE+zQ+mpqolebL0JGQxPqeUvxLj1Q=";
     };
     vendorHash = "sha256-Upjt0Q2G6x5vGf0bG0TS9uWrHBow8/cQsZexhMgVb2I=";
   };
 
-  whatsappPkg  = mkBridge "whatsapp"  "v0.2605.0" "sha256-xceFfF9jfD0UUvW0gFIOnV6RiEbKoO7GhqCrIozU9K8=";
-  gmessagesPkg = mkBridge "gmessages" "v0.2605.0" "sha256-7jE/rdcUqtCVgPtvgTP+Tghmo5QQfm3MMYCR9sLjfY0=";
-  metaPkg      = mkBridge "meta"      "v0.2605.1" "sha256-FSYxOjSu1I4tUTZWEomH5c1/igq0obQnT7Cc6q+n6zg=";
-  slackPkg     = mkBridge "slack"     "v0.2605.0" "sha256-kOMD0zm2mW9a0sUwWXTA1Mli4Mhk6MDm6pzCGFA3v2s=";
-  telegramPkg  = mkBridge "telegram"  "v0.2605.0" "sha256-EeAL95VncTaKdutzWpqe5XzyfIvgD+chka/qxwsmlDc=";
-  signalPkg    = mkBridge "signal"    "v0.2605.0" "sha256-cIfPkNxNAtW/debwL6Jg+YO+MK6Q+2it3pdKK9ycOg4=";
-  linkedinPkg  = mkBridge "linkedin"  "v0.2604.0" "sha256-yyreX/QaOsOc7fcQcz8y9u2q7/FO+4Xihi6gI04GAYs=";
+  whatsappPkg  = mkBridge "whatsapp"  "v0.2603.0" "sha256-1k3qcOL7arLiUOC4+EyBkZxvi0j12pdOE9kurA3Cbso=";
+  gmessagesPkg = mkBridge "gmessages" "v0.2602.0" "sha256-6hU6FWwkEqvoi1yByBXWe0t6U9q7j8T/TM9ynuyeiGA=";
+  metaPkg      = mkBridge "meta"      "v0.2602.0" "sha256-R6Pg1C2YhDhaJVxvaMZxluo3Si3Cgz3HP4HB9gWdU0w=";
+  slackPkg     = mkBridge "slack"     "v0.2603.0" "sha256-DzV2uA/NEzrfgXahAjv8nyyI47jQnyle+wxmh59yp5w=";
+  telegramPkg  = mkBridge "telegram"  "v0.2604.0" "sha256-MxEjaf43fdC++7zHntiN+eMdnRSIJB+sYpAIcTZAPK4=";
+  signalPkg    = mkBridge "signal"    "v0.2604.0" "sha256-f0Nd5bcHxGngxdc/pVNGoL/HCZduIVJppPRVX0lIzkI=";
+  linkedinPkg  = mkBridge "linkedin"  "v0.2602.0" "sha256-mvDchxkAA9/acDdo2EKDZx/pbTMC1r9CJVIOO27RwjA=";
 
   mkBridgeService = svcName: binPkg: binName: {
     description = "Matrix ${svcName} bridge";
@@ -65,30 +65,7 @@ let
       SyslogIdentifier = svcName;
     };
   };
-
-  spaces = [
-    { name = "friends";    id = "!YmVHgcBLpzR4fZ1fjJ:matrix.cloud-surf.com"; }
-    { name = "work";       id = "!w1kIQdLjYDUj7wgUis:matrix.cloud-surf.com"; }
-    { name = "social";     id = "!bSCdKJyP5D20sswOxD:matrix.cloud-surf.com"; }
-    { name = "colleagues"; id = "!UhvRHgZdEoHKMNgoud:matrix.cloud-surf.com"; }
-  ];
-
-  spacesJson = "[" + lib.concatStringsSep "," (map (s: ''{\"id\":\"${s.id}\",\"name\":\"${s.name}\"}'') spaces) + "]";
-
-  matrixEnv = pkgs.writeText "matrix-env" ''
-    MATRIX_SERVER=http://127.0.0.1:6167
-    MATRIX_USER_ID=@eugene:matrix.cloud-surf.com
-    MATRIX_SPACES=${spacesJson}
-  '';
 in {
-  options.matrix.envFile = lib.mkOption {
-    type     = lib.types.package;
-    readOnly = true;
-    internal = true;
-  };
-  config = {
-  matrix.envFile = matrixEnv;
-
   users.groups.tuwunel = {};
   users.groups.matrix  = {};
   users.users.tuwunel = {
@@ -162,7 +139,7 @@ in {
     serviceConfig = {
       User             = "matrix";
       Group            = "matrix";
-      ExecStart        = "${mx-proxy}/bin/mx-proxy --config /run/secrets/mx-proxy-config";
+      ExecStart        = "${mx-proxy}/bin/mx-proxy --config /etc/mx-proxy/config.toml";
       Restart          = "on-failure";
       RestartSec       = "5s";
       StandardOutput   = "journal";
@@ -183,18 +160,8 @@ in {
     mkBridgeService "mautrix-linkedin"    linkedinPkg  "mautrix-linkedin";
   systemd.services.mautrix-slack       =
     mkBridgeService "mautrix-slack"       slackPkg     "mautrix-slack";
+  systemd.services.mautrix-telegram    =
+    mkBridgeService "mautrix-telegram"    telegramPkg  "mautrix-telegram";
   systemd.services.mautrix-signal      =
     mkBridgeService "mautrix-signal"      signalPkg    "mautrix-signal";
-
-  # Telegram needs api_id + api_hash injected from sops before each start
-  systemd.services.mautrix-telegram = lib.mkMerge [
-    (mkBridgeService "mautrix-telegram" telegramPkg "mautrix-telegram")
-    {
-      serviceConfig.ExecStartPre = pkgs.writeShellScript "patch-telegram-api" ''
-        sed -i "s/api_id: .*/api_id: $(cat ${config.sops.secrets.telegram-api-id.path})/" /etc/mautrix-telegram/config.yaml
-        sed -i "s/api_hash: .*/api_hash: $(cat ${config.sops.secrets.telegram-api-hash.path})/" /etc/mautrix-telegram/config.yaml
-      '';
-    }
-  ];
-  };
 }

@@ -24,6 +24,7 @@
         { name = "startpage"; engine = "startpage"; shortcut = "sp"; }
         # Google: mobile UI is less aggressively rate-limited from datacenter IPs
         { name = "google"; engine = "google"; shortcut = "g"; use_mobile_ui = true; }
+        { name = "qwant"; engine = "qwant"; shortcut = "qw"; }
       ];
     };
   };

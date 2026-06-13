@@ -55,7 +55,7 @@
       User            = "eugene";
       RemainAfterExit = true;
       ExecStart       = pkgs.writeShellScript "nixos-config-push" ''
-        cd /home/eugene/nixos-vps
+        cd /etc/nixos
         ${pkgs.git}/bin/git add -A
         if ! ${pkgs.git}/bin/git diff-index --quiet HEAD; then
           ${pkgs.git}/bin/git commit -m "auto: post-rebuild $(${pkgs.coreutils}/bin/date -uI)"
