@@ -100,7 +100,7 @@ in {
   users.users.matrix = {
     isSystemUser = true;
     group        = "matrix";
-    extraGroups  = [ "vortex" ];
+    extraGroups  = [ "orchestrator" ];
     home         = "/var/lib/matrix";
     createHome   = false;
   };

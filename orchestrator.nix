@@ -31,6 +31,12 @@ let
     unix_socket = "/run/vortex/vortex.sock"
     db_path     = "/var/lib/vortex/state.db"
 
+    [server.network]
+    enabled     = true
+    bind        = "100.64.0.1:9001"
+    auth_method = "env"
+    auth_key    = "VORTEX_TOKEN"
+
     [workflows.mx-message]
     correlation_id = "{{trigger.id}}"
 
@@ -106,7 +112,8 @@ let
   extractMatrixToken = pkgs.writeShellScript "extract-matrix-token" ''
     TOKEN=$(${pkgs.gnugrep}/bin/grep 'as_token' ${config.sops.secrets.mx-proxy-config.path} \
       | ${pkgs.gnused}/bin/sed 's/.*= "\(.*\)"/\1/')
-    printf 'MATRIX_ACCESS_TOKEN=%s\n' "$TOKEN" > /var/lib/vortex/matrix-token.env
+    printf 'MATRIX_ACCESS_TOKEN=%s\n' "$TOKEN"                           >  /var/lib/vortex/matrix-token.env
+    printf 'VORTEX_TOKEN=%s\n' "$(cat ${config.sops.secrets.vortex-token.path})" >> /var/lib/vortex/matrix-token.env
     chown orchestrator:orchestrator /var/lib/vortex/matrix-token.env
     chmod 0400 /var/lib/vortex/matrix-token.env
   '';

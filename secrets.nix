@@ -18,6 +18,7 @@
       };
       telegram-api-id   = { owner = "matrix"; group = "matrix"; };
       telegram-api-hash = { owner = "matrix"; group = "matrix"; };
+      vortex-token      = {};
     };
   };
 }
