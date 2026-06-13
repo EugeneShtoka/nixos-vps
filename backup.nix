@@ -54,6 +54,7 @@
       Type            = "oneshot";
       User            = "eugene";
       RemainAfterExit = true;
+      Environment     = "HOME=/home/eugene";
       ExecStart       = pkgs.writeShellScript "nixos-config-push" ''
         cd /etc/nixos
         ${pkgs.git}/bin/git add -A
