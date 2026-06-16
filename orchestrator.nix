@@ -124,6 +124,16 @@ let
 
   # Extracts as_token from the decrypted mx-proxy sops secret and writes it
   # as MATRIX_ACCESS_TOKEN into the service state dir (mode 0400).
+  waitTailscaleIp = pkgs.writeShellScript "wait-tailscale-ip" ''
+    for i in $(seq 1 30); do
+      ${pkgs.iproute2}/bin/ip addr show dev tailscale0 2>/dev/null \
+        | ${pkgs.gnugrep}/bin/grep -q '100\.64\.0\.1' && exit 0
+      sleep 1
+    done
+    echo "Tailscale IP 100.64.0.1 not available after 30s" >&2
+    exit 1
+  '';
+
   extractMatrixToken = pkgs.writeShellScript "extract-matrix-token" ''
     TOKEN=$(${pkgs.gnugrep}/bin/grep 'as_token' ${config.sops.secrets.mx-proxy-config.path} \
       | ${pkgs.gnused}/bin/sed 's/.*= "\(.*\)"/\1/')
@@ -147,7 +157,7 @@ in {
     serviceConfig = {
       User            = "orchestrator";
       Group           = "orchestrator";
-      ExecStartPre    = "+${extractMatrixToken}";
+      ExecStartPre    = [ "${waitTailscaleIp}" "+${extractMatrixToken}" ];
       EnvironmentFile = [ "${config.matrix.envFile}" "-/var/lib/vortex/matrix-token.env" ];
       ExecStart       = "${vortexd}/bin/vortexd ${vortexConfig}";
       RuntimeDirectory     = "vortex";
