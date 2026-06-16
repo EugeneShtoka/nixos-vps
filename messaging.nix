@@ -76,6 +76,7 @@ let
   spacesJson = "[" + lib.concatStringsSep "," (map (s: ''{\"id\":\"${s.id}\",\"name\":\"${s.name}\"}'') spaces) + "]";
 
   spammers = [
+    "!Mr3bUKzkbufeSz2TEm:matrix.cloud-surf.com"
   ];
 
   spammersJson = "[" + lib.concatStringsSep "," (map (r: "\"${r}\"") spammers) + "]";
