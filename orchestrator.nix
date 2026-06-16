@@ -53,14 +53,13 @@ let
     url        = "https://ntfy.cloud-surf.com/mx-notify"
     method     = "POST"
     body       = "{{trigger.text}}"
-    when       = '!is_spam && trigger.event_id == ""'
+    when       = 'trigger.event_id == ""'
     headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
 
     [[workflows.mx-message.tasks]]
     type       = "eval"
     id         = "matched_space"
     depends_on = ["reply"]
-    when       = "!is_spam"
     expr       = 'trigger.room in globals.space_map ? globals.space_map[trigger.room] : ""'
 
     [[workflows.mx-message.tasks]]
