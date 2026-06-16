@@ -47,14 +47,11 @@ let
     expr       = 'trigger.room in env.MATRIX_SPAMMERS'
 
     [[workflows.mx-message.tasks]]
-    type       = "http"
-    id         = "notify"
-    depends_on = ["reply"]
-    url        = "https://ntfy.cloud-surf.com/mx-notify"
-    method     = "POST"
-    body       = "{{trigger.text}}"
-    when       = 'trigger.event_id == ""'
-    headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
+    type       = "response"
+    id         = "reply"
+    depends_on = ["is_spam"]
+    template   = '{"id":"{{correlation_id}}","status":"{{#if tasks.is_spam.success}}drop{{else}}ok{{/if}}","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
+    abort_if   = "is_spam"
 
     [[workflows.mx-message.tasks]]
     type       = "eval"
@@ -70,6 +67,16 @@ let
     url        = "https://ntfy.cloud-surf.com/mx-notify-{{tasks.matched_space.stdout}}"
     method     = "POST"
     body       = "https://matrix.to/#/{{trigger.room}}/{{trigger.event_id}}"
+    headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
+
+    [[workflows.mx-message.tasks]]
+    type       = "http"
+    id         = "notify"
+    depends_on = ["reply"]
+    url        = "https://ntfy.cloud-surf.com/mx-notify"
+    method     = "POST"
+    body       = "{{trigger.text}}"
+    when       = '!matched_space && trigger.event_id == ""'
     headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
 
     [[workflows.mx-message.tasks]]
@@ -97,12 +104,6 @@ let
     body       = "{{tasks.extract_url.stdout}}{{tasks.extract_code.stdout}}"
     when       = "extract_url || extract_code"
 
-    [[workflows.mx-message.tasks]]
-    type       = "response"
-    id         = "reply"
-    depends_on = ["is_spam"]
-    template   = '{"id":"{{correlation_id}}","status":"{{#if tasks.is_spam.success}}drop{{else}}ok{{/if}}","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
-    abort_if   = "is_spam"
 
     [workflows.space-map]
     cron = "0 * * * *"
