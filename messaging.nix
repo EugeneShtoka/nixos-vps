@@ -75,10 +75,16 @@ let
 
   spacesJson = "[" + lib.concatStringsSep "," (map (s: ''{\"id\":\"${s.id}\",\"name\":\"${s.name}\"}'') spaces) + "]";
 
+  spammers = [
+  ];
+
+  spammersJson = "[" + lib.concatStringsSep "," (map (r: "\"${r}\"") spammers) + "]";
+
   matrixEnv = pkgs.writeText "matrix-env" ''
     MATRIX_SERVER=http://127.0.0.1:6167
     MATRIX_USER_ID=@eugene:matrix.cloud-surf.com
     MATRIX_SPACES=${spacesJson}
+    MATRIX_SPAMMERS=${spammersJson}
   '';
 in {
   options.matrix.envFile = lib.mkOption {

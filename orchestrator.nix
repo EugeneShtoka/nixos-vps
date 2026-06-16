@@ -41,6 +41,13 @@ let
     correlation_id = "{{trigger.id}}"
 
     [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "is_spam"
+    depends_on = []
+    expr       = 'trigger.room in env.MATRIX_SPAMMERS'
+    abort_if   = "self.success"
+
+    [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "notify"
     depends_on = []
