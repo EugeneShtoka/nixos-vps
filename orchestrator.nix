@@ -51,25 +51,16 @@ let
     headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
 
     [[workflows.mx-message.tasks]]
-    type       = "http"
-    id         = "fetch_state"
-    depends_on = []
-    url        = "{{env.MATRIX_SERVER}}/_matrix/client/v3/rooms/{{trigger.room}}/state?user_id={{env.MATRIX_USER_ID}}"
-    when       = 'trigger.event_id != ""'
-    headers    = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
-
-    [[workflows.mx-message.tasks]]
     type       = "eval"
     id         = "matched_space"
-    depends_on = ["fetch_state"]
-    when       = 'trigger.event_id != ""'
-    expr       = 'env.MATRIX_SPACES.filter(s, tasks.fetch_state.output.exists(e, e.type == "m.space.parent" && e.state_key == s.id)).map(s, s.name)[0]'
+    depends_on = []
+    expr       = 'trigger.room in globals.space_map ? globals.space_map[trigger.room] : ""'
 
     [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "notify_space"
     depends_on = ["matched_space"]
-    when       = "matched_space"
+    when       = 'matched_space && trigger.event_id == ""'
     url        = "https://ntfy.cloud-surf.com/mx-notify-{{tasks.matched_space.stdout}}"
     method     = "POST"
     body       = "https://matrix.to/#/{{trigger.room}}/{{trigger.event_id}}"
@@ -81,7 +72,7 @@ let
     depends_on = ["matched_space"]
     exe        = "clipkit"
     args       = ["--json", "text", "--extract-url"]
-    when       = 'matched_space && trigger.event_id != ""'
+    when       = 'matched_space && trigger.event_id == ""'
 
     [[workflows.mx-message.tasks]]
     type       = "spawn"
@@ -89,7 +80,7 @@ let
     depends_on = ["matched_space", "extract_url"]
     exe        = "clipkit"
     args       = ["--json", "text", "--extract-code"]
-    when       = '!matched_space && trigger.event_id != ""'
+    when       = '!matched_space && trigger.event_id == ""'
 
     [[workflows.mx-message.tasks]]
     type       = "http"
@@ -105,6 +96,23 @@ let
     id         = "reply"
     depends_on = []
     template   = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
+
+    [workflows.space-map]
+    cron = "0 * * * *"
+
+    [[workflows.space-map.tasks]]
+    type       = "foreach"
+    id         = "build_map"
+    items      = "env.MATRIX_SPACES"
+    initial    = "{}"
+    accumulate = "merge(toMap(tasks.fetch.output.filter(e, e.type == 'm.space.child'), 'state_key', item.name), acc)"
+    tasks      = [{ id = "fetch", type = "http", url = "{{env.MATRIX_SERVER}}/_matrix/client/v3/rooms/{{item.id}}/state?user_id={{env.MATRIX_USER_ID}}", headers = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" } }]
+
+    [[workflows.space-map.tasks]]
+    type       = "store_set"
+    id         = "save_map"
+    depends_on = ["build_map"]
+    set        = { space_map = "{{tasks.build_map.stdout}}" }
   '';
 
   # Extracts as_token from the decrypted mx-proxy sops secret and writes it
