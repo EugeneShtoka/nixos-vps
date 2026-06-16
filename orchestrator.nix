@@ -127,10 +127,10 @@ let
   waitTailscaleIp = pkgs.writeShellScript "wait-tailscale-ip" ''
     for i in $(seq 1 30); do
       ${pkgs.iproute2}/bin/ip addr show dev tailscale0 2>/dev/null \
-        | ${pkgs.gnugrep}/bin/grep -q '100\.64\.0\.1' && exit 0
+        | ${pkgs.gnugrep}/bin/grep -q 'inet ' && exit 0
       sleep 1
     done
-    echo "Tailscale IP 100.64.0.1 not available after 30s" >&2
+    echo "tailscale0 has no inet address after 30s" >&2
     exit 1
   '';
 
