@@ -47,14 +47,6 @@ let
     expr       = 'trigger.room in env.MATRIX_SPAMMERS'
 
     [[workflows.mx-message.tasks]]
-    type       = "response"
-    id         = "drop"
-    depends_on = ["is_spam"]
-    when       = "is_spam"
-    template   = '{"id":"{{correlation_id}}","status":"drop"}'
-    abort_if   = "self.success"
-
-    [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "notify"
     depends_on = ["is_spam"]
@@ -67,7 +59,8 @@ let
     [[workflows.mx-message.tasks]]
     type       = "eval"
     id         = "matched_space"
-    depends_on = []
+    depends_on = ["is_spam"]
+    when       = "!is_spam"
     expr       = 'trigger.room in globals.space_map ? globals.space_map[trigger.room] : ""'
 
     [[workflows.mx-message.tasks]]
@@ -108,8 +101,8 @@ let
     [[workflows.mx-message.tasks]]
     type       = "response"
     id         = "reply"
-    depends_on = []
-    template   = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
+    depends_on = ["is_spam"]
+    template   = '{"id":"{{correlation_id}}","status":"{{#if tasks.is_spam.success}}drop{{else}}ok{{/if}}","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
 
     [workflows.space-map]
     cron = "0 * * * *"
