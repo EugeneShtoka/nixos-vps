@@ -33,7 +33,7 @@ let
 
     [server.network]
     enabled     = true
-    bind        = "100.64.0.1:9001"
+    bind        = "0.0.0.0:9001"
     auth_method = "env"
     auth_key    = "VORTEX_TOKEN"
 
