@@ -59,7 +59,7 @@ let
     [[workflows.mx-message.tasks]]
     type       = "eval"
     id         = "matched_space"
-    depends_on = ["is_spam"]
+    depends_on = ["reply"]
     when       = "!is_spam"
     expr       = 'trigger.room in globals.space_map ? globals.space_map[trigger.room] : ""'
 
@@ -102,8 +102,8 @@ let
     type       = "response"
     id         = "reply"
     depends_on = ["is_spam"]
-    when       = "!is_spam"
-    template   = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
+    template   = '{"id":"{{correlation_id}}","status":"{{#if tasks.is_spam.success}}drop{{else}}ok{{/if}}","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
+    abort_if   = "is_spam"
 
     [workflows.space-map]
     cron = "0 * * * *"
