@@ -102,7 +102,8 @@ let
     type       = "response"
     id         = "reply"
     depends_on = ["is_spam"]
-    template   = '{"id":"{{correlation_id}}","status":"{{#if tasks.is_spam.success}}drop{{else}}ok{{/if}}","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
+    when       = "!is_spam"
+    template   = '{"id":"{{correlation_id}}","status":"ok","text":{{json trigger.text}},"room_id":{{json trigger.room}},"sender":{{json trigger.sender}}}'
 
     [workflows.space-map]
     cron = "0 * * * *"
