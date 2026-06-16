@@ -49,7 +49,7 @@ let
     [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "notify"
-    depends_on = ["is_spam"]
+    depends_on = ["reply"]
     url        = "https://ntfy.cloud-surf.com/mx-notify"
     method     = "POST"
     body       = "{{trigger.text}}"
