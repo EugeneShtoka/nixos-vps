@@ -45,16 +45,23 @@ let
     id         = "is_spam"
     depends_on = []
     expr       = 'trigger.room in env.MATRIX_SPAMMERS'
+
+    [[workflows.mx-message.tasks]]
+    type       = "response"
+    id         = "drop"
+    depends_on = ["is_spam"]
+    when       = "is_spam"
+    template   = '{"id":"{{correlation_id}}","status":"drop"}'
     abort_if   = "self.success"
 
     [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "notify"
-    depends_on = []
+    depends_on = ["is_spam"]
     url        = "https://ntfy.cloud-surf.com/mx-notify"
     method     = "POST"
     body       = "{{trigger.text}}"
-    when       = 'trigger.event_id == ""'
+    when       = '!is_spam && trigger.event_id == ""'
     headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
 
     [[workflows.mx-message.tasks]]
