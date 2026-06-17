@@ -60,24 +60,82 @@ let
     expr       = 'trigger.room in globals.space_map ? globals.space_map[trigger.room] : ""'
 
     [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "room_name_cached"
+    depends_on = ["reply"]
+    expr       = '"room_names" in globals && trigger.room in globals.room_names ? globals.room_names[trigger.room] : ""'
+
+    [[workflows.mx-message.tasks]]
     type       = "http"
-    id         = "notify_space"
-    depends_on = ["matched_space"]
-    when       = 'matched_space && trigger.event_id == ""'
-    url        = "https://ntfy.cloud-surf.com/mx-notify-{{tasks.matched_space.stdout}}"
-    method     = "POST"
-    body       = "https://matrix.to/#/{{trigger.room}}/{{trigger.event_id}}"
-    headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
+    id         = "fetch_room_name"
+    depends_on = ["room_name_cached"]
+    when       = "NOT room_name_cached"
+    url        = "{{env.MATRIX_SERVER}}/_matrix/client/v3/rooms/{{trigger.room}}/state/m.room.name?user_id={{env.MATRIX_USER_ID}}"
+    headers    = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "new_room_names"
+    depends_on = ["fetch_room_name"]
+    when       = "fetch_room_name"
+    expr       = 'merge("room_names" in globals ? globals.room_names : {}, toMap([{"id": trigger.room}], "id", tasks.fetch_room_name.output.name))'
+
+    [[workflows.mx-message.tasks]]
+    type       = "store_set"
+    id         = "cache_room_name"
+    depends_on = ["new_room_names"]
+    when       = "new_room_names"
+    set        = { room_names = "{{tasks.new_room_names.stdout}}" }
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "room_name"
+    depends_on = ["room_name_cached", "fetch_room_name"]
+    expr       = 'tasks.room_name_cached.stdout != "" ? tasks.room_name_cached.stdout : (tasks.fetch_room_name.success ? tasks.fetch_room_name.output.name : trigger.room)'
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "sender_name_cached"
+    depends_on = ["reply"]
+    expr       = '"user_names" in globals && trigger.sender in globals.user_names ? globals.user_names[trigger.sender] : ""'
+
+    [[workflows.mx-message.tasks]]
+    type       = "http"
+    id         = "fetch_sender_name"
+    depends_on = ["sender_name_cached"]
+    when       = "NOT sender_name_cached"
+    url        = "{{env.MATRIX_SERVER}}/_matrix/client/v3/profile/{{trigger.sender}}/displayname?user_id={{env.MATRIX_USER_ID}}"
+    headers    = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "new_user_names"
+    depends_on = ["fetch_sender_name"]
+    when       = "fetch_sender_name"
+    expr       = 'merge("user_names" in globals ? globals.user_names : {}, toMap([{"id": trigger.sender}], "id", tasks.fetch_sender_name.output.displayname))'
+
+    [[workflows.mx-message.tasks]]
+    type       = "store_set"
+    id         = "cache_sender_name"
+    depends_on = ["new_user_names"]
+    when       = "new_user_names"
+    set        = { user_names = "{{tasks.new_user_names.stdout}}" }
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "sender_name"
+    depends_on = ["sender_name_cached", "fetch_sender_name"]
+    expr       = 'tasks.sender_name_cached.stdout != "" ? tasks.sender_name_cached.stdout : (tasks.fetch_sender_name.success ? tasks.fetch_sender_name.output.displayname : trigger.sender)'
 
     [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "notify"
-    depends_on = ["reply"]
-    url        = "https://ntfy.cloud-surf.com/mx-notify"
+    depends_on = ["matched_space", "room_name", "sender_name"]
+    when       = 'trigger.event_id == ""'
+    url        = "https://ntfy.cloud-surf.com/mx-notify{{#if tasks.matched_space.stdout}}-{{tasks.matched_space.stdout}}{{/if}}"
     method     = "POST"
     body       = "{{trigger.text}}"
-    when       = '!matched_space && trigger.event_id == ""'
-    headers    = { Title = "{{trigger.sender}} [{{trigger.room}}]" }
+    headers    = { Title = "{{tasks.sender_name.stdout}} [{{tasks.room_name.stdout}}]" }
 
     [[workflows.mx-message.tasks]]
     type       = "spawn"
