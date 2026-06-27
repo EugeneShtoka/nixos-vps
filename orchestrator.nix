@@ -18,8 +18,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner  = "EugeneShtoka";
       repo   = "vortex";
-      rev    = "61a52e4b94536d586ef6325bd1dd6d5564bb01a0";
-      hash   = "sha256-oabykOog5u5Pf6KE4FSUbmeZRl9lL5dJ6YD6IK3yrEA=";
+      rev    = "437597ccc2b5a47b78a2e12118b7f9f7d5115605";
+      hash   = "sha256-oL6DZIPzKA10y3zWh1TYxJvOdaTibxXTdMIe0EjhNuE=";
     };
     cargoLock.lockFile = ./vortex-Cargo.lock;
     cargoBuildFlags    = [ "-p" "vortexd" ];
@@ -61,6 +61,12 @@ let
 
     [[workflows.mx-message.tasks]]
     type       = "eval"
+    id         = "resolved_sender"
+    depends_on = ["reply"]
+    expr       = 'trigger.sender != "" ? trigger.sender : env.MATRIX_USER_ID'
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
     id         = "room_name_cached"
     depends_on = ["reply"]
     expr       = '"room_names" in globals && trigger.room in globals.room_names ? globals.room_names[trigger.room] : ""'
@@ -96,15 +102,15 @@ let
     [[workflows.mx-message.tasks]]
     type       = "eval"
     id         = "sender_name_cached"
-    depends_on = ["reply"]
-    expr       = '"user_names" in globals && trigger.sender in globals.user_names ? globals.user_names[trigger.sender] : ""'
+    depends_on = ["resolved_sender"]
+    expr       = '"user_names" in globals && tasks.resolved_sender.stdout in globals.user_names ? globals.user_names[tasks.resolved_sender.stdout] : ""'
 
     [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "fetch_sender_name"
     depends_on = ["sender_name_cached"]
     when       = "NOT sender_name_cached"
-    url        = "{{env.MATRIX_SERVER}}/_matrix/client/v3/profile/{{trigger.sender}}/displayname?user_id={{env.MATRIX_USER_ID}}"
+    url        = "{{env.MATRIX_SERVER}}/_matrix/client/v3/profile/{{tasks.resolved_sender.stdout}}/displayname?user_id={{env.MATRIX_USER_ID}}"
     headers    = { Authorization = "Bearer {{env.MATRIX_ACCESS_TOKEN}}" }
 
     [[workflows.mx-message.tasks]]
@@ -112,7 +118,7 @@ let
     id         = "new_user_names"
     depends_on = ["fetch_sender_name"]
     when       = "fetch_sender_name"
-    expr       = 'merge("user_names" in globals ? globals.user_names : {}, toMap([{"id": trigger.sender}], "id", tasks.fetch_sender_name.output.displayname))'
+    expr       = 'merge("user_names" in globals ? globals.user_names : {}, toMap([{"id": tasks.resolved_sender.stdout}], "id", tasks.fetch_sender_name.output.displayname))'
 
     [[workflows.mx-message.tasks]]
     type       = "store_set"
@@ -125,17 +131,29 @@ let
     type       = "eval"
     id         = "sender_name"
     depends_on = ["sender_name_cached", "fetch_sender_name"]
-    expr       = 'tasks.sender_name_cached.stdout != "" ? tasks.sender_name_cached.stdout : (tasks.fetch_sender_name.success ? tasks.fetch_sender_name.output.displayname : trigger.sender)'
+    expr       = 'tasks.sender_name_cached.stdout != "" ? tasks.sender_name_cached.stdout : (tasks.fetch_sender_name.success ? tasks.fetch_sender_name.output.displayname : tasks.resolved_sender.stdout)'
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "sender_display"
+    depends_on = ["sender_name"]
+    expr       = 'regex_replace(tasks.sender_name.stdout, " \\([^)]*\\)$", "")'
+
+    [[workflows.mx-message.tasks]]
+    type       = "eval"
+    id         = "title"
+    depends_on = ["sender_display", "room_name"]
+    expr       = 'tasks.sender_display.stdout == tasks.room_name.stdout ? tasks.sender_display.stdout : tasks.sender_display.stdout + " [" + tasks.room_name.stdout + "]"'
 
     [[workflows.mx-message.tasks]]
     type       = "http"
     id         = "notify"
-    depends_on = ["matched_space", "room_name", "sender_name"]
+    depends_on = ["matched_space", "title"]
     when       = 'trigger.event_id == ""'
     url        = "https://ntfy.cloud-surf.com/mx-notify{{#if tasks.matched_space.stdout}}-{{tasks.matched_space.stdout}}{{/if}}"
     method     = "POST"
     body       = "{{trigger.text}}"
-    headers    = { Title = "{{tasks.sender_name.stdout}} [{{tasks.room_name.stdout}}]" }
+    headers    = { Title = "{{tasks.title.stdout}}" }
 
     [[workflows.mx-message.tasks]]
     type       = "spawn"
