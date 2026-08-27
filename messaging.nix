@@ -17,10 +17,10 @@ let
 
   tuwunel = pkgs.stdenv.mkDerivation {
     pname   = "tuwunel";
-    version = "1.5.1";
+    version = "1.8.3";
     src = pkgs.fetchurl {
-      url  = "https://github.com/matrix-construct/tuwunel/releases/download/v1.5.1/v1.5.1-release-all-x86_64-v1-linux-gnu-tuwunel.zst";
-      hash = "sha256-2j+EqWC+vnGgQtOz6UlrLfTAvubQyUjGG5Wq0/5VdwI=";
+      url  = "https://github.com/matrix-construct/tuwunel/releases/download/v1.8.3/v1.8.3-release-all-x86_64-v1-linux-gnu-tuwunel.zst";
+      hash = "sha256-zSJEcJhJ6l1qiG/UBxDv6uo6Tk3WHTrWf1kpd/A6Xww=";
     };
     nativeBuildInputs = [ pkgs.zstd pkgs.autoPatchelfHook ];
     buildInputs        = [ pkgs.stdenv.cc.cc.lib ];
