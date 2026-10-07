@@ -82,6 +82,10 @@
           proxyWebsockets = true;
           extraConfig     = "proxy_read_timeout 3600;";
         };
+        # Each WhatsApp bridge's provisioning API (logins, contacts), for kith: the bridge
+        # checks the caller's own Matrix token on every request. VPN-only, as the host is.
+        locations."/_matrix/provision/whatsapp-il/".proxyPass = "http://127.0.0.1:29319/_matrix/provision/";
+        locations."/_matrix/provision/whatsapp-bg/".proxyPass = "http://127.0.0.1:29318/_matrix/provision/";
       };
 
       "ntfy.cloud-surf.com" = {
