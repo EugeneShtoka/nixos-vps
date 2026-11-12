@@ -21,6 +21,7 @@
       "netdata.cloud-surf.com"
       "matrix.cloud-surf.com"
       "ntfy.cloud-surf.com"
+      "board.cloud-surf.com"
     ] (_: { dnsProvider = "cloudflare"; webroot = null; });
   };
 
@@ -100,6 +101,16 @@
       };
 
       # "immich.cloud-surf.com" — disabled until Immich is set up
+
+      # Brief Board on elitedesk (user service, :8787), over the tailnet.
+      "board.cloud-surf.com" = {
+        enableACME  = true;
+        forceSSL    = true;
+        extraConfig = vpnOnly;
+        locations."/" = {
+          proxyPass = "http://100.64.0.5:8787";
+        };
+      };
 
       "syncthing.cloud-surf.com" = {
         enableACME  = true;
