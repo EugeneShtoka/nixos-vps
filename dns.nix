@@ -38,7 +38,7 @@
         ''"immich.cloud-surf.com. A 100.64.0.1"''
         ''"matrix.cloud-surf.com. A 100.64.0.1"''
         ''"ntfy.cloud-surf.com. A 100.64.0.1"''
-        ''"board.cloud-surf.com. A 100.64.0.1"''
+        ''"hirdman.cloud-surf.com. A 100.64.0.1"''
       ];
     };
     settings.forward-zone = [{

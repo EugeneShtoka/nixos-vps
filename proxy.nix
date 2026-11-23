@@ -21,7 +21,7 @@
       "netdata.cloud-surf.com"
       "matrix.cloud-surf.com"
       "ntfy.cloud-surf.com"
-      "board.cloud-surf.com"
+      "hirdman.cloud-surf.com"
     ] (_: { dnsProvider = "cloudflare"; webroot = null; });
   };
 
@@ -102,8 +102,8 @@
 
       # "immich.cloud-surf.com" — disabled until Immich is set up
 
-      # Brief Board on elitedesk (user service, :8787), over the tailnet.
-      "board.cloud-surf.com" = {
+      # Hirdman on elitedesk (user service, :8787), over the tailnet.
+      "hirdman.cloud-surf.com" = {
         enableACME  = true;
         forceSSL    = true;
         extraConfig = vpnOnly;
